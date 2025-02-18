@@ -38,6 +38,8 @@ void run_rr(int argc, char *argv[]) {
         usage("Failed to open file.");
     }
 
+    // TODO: Develop the Ready Queue
+
     puts("\nRunning RR...");
     puts("Time | Running | Ready Queue");
     puts("-----------------------------");
