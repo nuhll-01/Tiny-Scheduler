@@ -6,7 +6,9 @@
 
 #include "utils.h"
 
-void run_rr(int argc, char *argv[]) { 
+void run_rr(int argc, char *argv[]) {
+
+    // scheduling quantum error handling 
     if (argc < 4) {     
         fprintf(stderr, "scheduling quantum required.\n");
         exit(-1);
