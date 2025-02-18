@@ -8,15 +8,13 @@
 
 void run_rr(int argc, char *argv[]) {
 
-    // scheduling quantum error handling 
+    // error-handling: scheduling quantum 
     if (argc < 4) {     
-        fprintf(stderr, "scheduling quantum required.\n");
-        exit(-1);
+        usage("Scheduling quantum required.");
     }
 
     if (argc > 4) { 
-        fprintf(stderr, "exceeded the number of required arguments.\n");
-        exit(-1);
+        usage("Exceeded the number of required arguments.");
     }
 
     const int BASE = 10;
@@ -26,13 +24,18 @@ void run_rr(int argc, char *argv[]) {
     quantum = strtol(argv[3], &endptr, BASE);
 
     if (endptr == argv[3]) { 
-        fprintf(stderr, "Numerical value not found.\n");
-        exit(-1);
+        usage("Numerical value not found.");
     }
 
-    if (quantum < 2 || quantum > 4) { 
-        fprintf(stderr, "Quantum must fall within the valid range of 2-4ms.\n");
-        exit(-1);
+    if (quantum < 1 || quantum > 5) { 
+        usage("Quantum must fall within the valid range of 1-5ms.");
+    }
+
+    // error-handling: verifying the input file 
+    FILE *file = fopen(argv[2], "r");
+
+    if (file == NULL) { 
+        usage("Failed to open file.");
     }
 
     puts("\nRunning RR...");
@@ -43,7 +46,7 @@ void run_rr(int argc, char *argv[]) {
 
     puts("");
 
-
+    fclose(file);
     puts("\nRR Execution Completed.");
     puts("Average Response Time:");
     puts("Average Turnaround Time:");
