@@ -38,7 +38,23 @@ void run_rr(int argc, char *argv[]) {
         usage("Failed to open file.");
     }
 
-    // TODO: Develop the Ready Queue
+    // TODO: Implement the Ready Queue / Initialize the Structures
+    // TODO: Determine the number of processes.
+
+
+    // some experimental code
+    Process* p1 = (Process*)malloc(sizeof(Process));
+    if (p1 == NULL) { 
+        fprintf(stderr, "Memory allocation failed.");
+        exit(-1);
+    }
+
+    // initialize the process
+    strcpy(p1->pid, "p1");
+    p1->arrival_time = 0;
+    p1->run_time = 5;
+
+
 
     puts("\nRunning RR...");
     puts("Time | Running | Ready Queue");
