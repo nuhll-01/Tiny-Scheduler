@@ -55,9 +55,20 @@ void run_rr(int argc, char *argv[]) {
         usage("Failed to open file.");
     }
 
-    // TODO: Implement the Ready Queue / Initialize the Structures
-    // TODO: Determine the number of processes.
+    // TODO: Implement and Initialize the Ready Queue
+    // TODO: Initialize the processes
+    
+    // Determine the number of processes.
     int numbOfProcesses = count(fp); // NOTE TO SELF: this is working so far.
+
+    // Validate the number of processes
+    if (numbOfProcesses < 2 || numbOfProcesses > 5) { 
+        fprintf(stderr, "The number of processes must fall within the valid range of 2-5.\n");
+        exit(-1);
+    }
+
+    
+
 
     // some experimental code
     Process* p1 = (Process*)malloc(sizeof(Process));
