@@ -6,6 +6,23 @@
 
 #include "utils.h"
 
+/**
+ *  @brief count the total number of processes.
+ *  
+ *  @param file_pointer the pointer to the text file
+ * 
+ *  @returns the total number of processes
+ * 
+ */
+int count(FILE* file_pointer) { 
+    char line[256];
+    int numberOfProcesses = 0;
+    while (fgets(line, sizeof(line), file_pointer)) { 
+        numberOfProcesses++; 
+    }
+    return numberOfProcesses;
+}
+
 void run_rr(int argc, char *argv[]) {
 
     // error-handling: scheduling quantum 
@@ -32,15 +49,15 @@ void run_rr(int argc, char *argv[]) {
     }
 
     // error-handling: verifying the input file 
-    FILE *file = fopen(argv[2], "r");
+    FILE *fp = fopen(argv[2], "r");
 
-    if (file == NULL) { 
+    if (fp == NULL) { 
         usage("Failed to open file.");
     }
 
     // TODO: Implement the Ready Queue / Initialize the Structures
     // TODO: Determine the number of processes.
-
+    int numbOfProcesses = count(fp); // NOTE TO SELF: this is working so far.
 
     // some experimental code
     Process* p1 = (Process*)malloc(sizeof(Process));
@@ -64,7 +81,7 @@ void run_rr(int argc, char *argv[]) {
 
     puts("");
 
-    fclose(file);
+    fclose(fp);
     puts("\nRR Execution Completed.");
     puts("Average Response Time:");
     puts("Average Turnaround Time:");
