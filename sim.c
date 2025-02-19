@@ -7,6 +7,17 @@
 #include "utils.h"
 
 /**
+ *  @brief set the cursor back the beginning.
+ *  
+ *  @param file_pointer the pointer to the text file
+ * 
+ */
+void file_rewind(FILE* file_pointer) { 
+    fseek(file_pointer, 0, SEEK_END);
+    rewind(file_pointer);
+}
+
+/**
  *  @brief count the total number of processes.
  *  
  *  @param file_pointer the pointer to the text file
@@ -56,10 +67,10 @@ void run_rr(int argc, char *argv[]) {
     }
 
     // TODO: Implement and Initialize the Ready Queue
-    // TODO: Initialize the processes
     
     // Determine the number of processes.
     int numbOfProcesses = count(fp); // NOTE TO SELF: this is working so far.
+
 
     // Validate the number of processes
     if (numbOfProcesses < 2 || numbOfProcesses > 5) { 
@@ -67,20 +78,24 @@ void run_rr(int argc, char *argv[]) {
         exit(-1);
     }
 
-    
+    // Point back to the beginning of the file
+    file_rewind(fp);
 
-
-    // some experimental code
-    Process* p1 = (Process*)malloc(sizeof(Process));
-    if (p1 == NULL) { 
+    // TODO: Initialize the processes
+    Process* processes = (Process*)malloc(numbOfProcesses * sizeof(Process));
+    if (processes == NULL) { 
         fprintf(stderr, "Memory allocation failed.");
         exit(-1);
     }
 
+    for (int i = 0; i < numbOfProcesses; i++) { 
+
+    }
+
     // initialize the process
-    strcpy(p1->pid, "p1");
-    p1->arrival_time = 0;
-    p1->run_time = 5;
+    strcpy(processes->pid, "processes");
+    processes->arrival_time = 0;
+    processes->run_time = 5;
 
 
 
