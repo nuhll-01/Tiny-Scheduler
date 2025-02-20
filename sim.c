@@ -1,6 +1,7 @@
 /* 
 * Sources: 
 *   - https://www.tutorialspoint.com/c_standard_library/c_function_strtol.htm 
+*   - https://www.tutorialspoint.com/cprogramming/c_error_handling.htm
 *
 */
 
@@ -85,19 +86,21 @@ void run_rr(int argc, char *argv[]) {
     Process* processes = (Process*)malloc(numbOfProcesses * sizeof(Process));
     if (processes == NULL) { 
         fprintf(stderr, "Memory allocation failed.");
+        fclose(fp);
         exit(-1);
     }
 
-    for (int i = 0; i < numbOfProcesses; i++) { 
-
-    }
-
     // initialize the process
-    strcpy(processes->pid, "processes");
-    processes->arrival_time = 0;
-    processes->run_time = 5;
-
-
+    // read the file line-by-line
+    int i = 0;
+    char line[256];
+    while (fgets(line, sizeof(line), fp)) {
+        sscanf(line, "%s %d %d",
+                processes[i].pid,
+                &processes[i].arrival_time,
+                &processes[i].run_time);
+        i++;
+    }
 
     puts("\nRunning RR...");
     puts("Time | Running | Ready Queue");
@@ -105,6 +108,13 @@ void run_rr(int argc, char *argv[]) {
 
     // some logic here
 
+    for(int i = 0; i < numbOfProcesses; i++) { 
+        printf("%s %d %d\n", processes[i].pid, 
+            processes[i].arrival_time, 
+            processes[i].run_time);
+    }
+
+    
     puts("");
 
     fclose(fp);
