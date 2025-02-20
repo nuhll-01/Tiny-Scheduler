@@ -114,7 +114,6 @@ void run_rr(int argc, char *argv[]) {
             processes[i].run_time);
     }
 
-    
     puts("");
 
     fclose(fp);
