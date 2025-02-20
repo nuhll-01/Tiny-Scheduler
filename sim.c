@@ -186,28 +186,15 @@ void run_rr(int argc, char *argv[]) {
     puts("Time | Running | Ready Queue");
     puts("-----------------------------");
 
-    // some logic here
-
-    for(int i = 0; i < numbOfProcesses; i++) { 
-        printf("%s %d %d\n", 
-            processes[i].pid, 
-            processes[i].arrival_time, 
-            processes[i].run_time);
-    }
-
-    // TODO: Implement the circular queue.
+    // Initialize the circular queue.
     char* queue[numbOfProcesses];
     size = numbOfProcesses;
 
     puts("");
 
-    // enqueue the processes to the Ready Queue
-    enqueue(queue, processes[0].pid);
-    enqueue(queue, processes[1].pid);
-    enqueue(queue, processes[2].pid);
-    enqueue(queue, processes[3].pid);
-    display(queue);
-
+    // The queue has been completed (I believe it's completed)
+    // Knowing this information, try implementing the login for Round Robin
+    // TODO: Implement Round Robin Scheduler
 
     puts("");
 
