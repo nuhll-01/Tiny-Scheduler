@@ -3,10 +3,89 @@
 *   - https://www.tutorialspoint.com/c_standard_library/c_function_strtol.htm 
 *   - https://www.tutorialspoint.com/cprogramming/c_error_handling.htm
 *   - https://www.tutorialspoint.com/c_standard_library/c_function_sscanf.htm
+*   - https://www.geeksforgeeks.org/c-program-to-implement-circular-queue/
 *
 */
 
 #include "utils.h"
+
+int size = 0; 
+int rear = -1, front = -1;
+
+/**
+ *  @brief check if the queue is full.
+ */
+int isFull() { 
+    // if the next position is the front, the queue is full
+    return (rear + 1) % size == front;
+}
+
+/**
+ *  @brief check if the queue is empty.
+ */
+int isEmpty() { 
+    // if the front hasn't been set, the queue is empty
+    return front == -1;
+}
+
+/**
+ *  @brief insert an element to the queue
+ * 
+ *  @param queue the queue to operate on
+ *  @param process the process to insert into the queue
+ */
+void enqueue(char* queue[], char* process) {
+
+    // check if the queue is full before inserting
+    if (isFull()) { 
+        puts("the queue is full.");
+        return;
+    }
+
+    // if the queue is empty, set the front to the first position
+    if (front == -1) { 
+        front = 0;
+    }
+
+    rear = (rear + 1) % size;
+    queue[rear] = process;
+}
+
+/**
+ *  @brief remove an element from the queue.
+ */
+void dequeue() { 
+    if (isEmpty()) { 
+        puts("the queue is empty.");
+        exit(-1);
+    }
+
+    if (front == rear) { 
+        front = rear = -1;
+    } else { 
+        front = (front + 1) % size;
+    }
+}
+
+/**
+ *  @brief display the elements of the queue.
+ *  
+ *  @param queue the queue to operate on
+ * 
+ */
+void display(char* queue[]) { 
+    if (isEmpty()) { 
+        puts("the queue is empty.");
+        return;
+    }
+    printf("%s\n", "Queue Elements:");
+    int i = front;
+    while (i != rear) { 
+        printf("%s\n", queue[i]);
+        i = (i + 1) % size;
+    }
+    printf("%s\n", queue[rear]);
+}
 
 /**
  *  @brief set the cursor back the beginning.
@@ -110,17 +189,24 @@ void run_rr(int argc, char *argv[]) {
     // some logic here
 
     for(int i = 0; i < numbOfProcesses; i++) { 
-        printf("%s %d %d\n", processes[i].pid, 
+        printf("%s %d %d\n", 
+            processes[i].pid, 
             processes[i].arrival_time, 
             processes[i].run_time);
     }
 
+    // TODO: Implement the circular queue.
+    char* queue[numbOfProcesses];
+    size = numbOfProcesses;
+
+    puts("");
+
     // enqueue the processes to the Ready Queue
-    
-
-
-
-
+    enqueue(queue, processes[0].pid);
+    enqueue(queue, processes[1].pid);
+    enqueue(queue, processes[2].pid);
+    enqueue(queue, processes[3].pid);
+    display(queue);
 
 
     puts("");
