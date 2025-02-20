@@ -2,6 +2,7 @@
 * Sources: 
 *   - https://www.tutorialspoint.com/c_standard_library/c_function_strtol.htm 
 *   - https://www.tutorialspoint.com/cprogramming/c_error_handling.htm
+*   - https://www.tutorialspoint.com/c_standard_library/c_function_sscanf.htm
 *
 */
 
@@ -113,6 +114,14 @@ void run_rr(int argc, char *argv[]) {
             processes[i].arrival_time, 
             processes[i].run_time);
     }
+
+    // enqueue the processes to the Ready Queue
+    
+
+
+
+
+
 
     puts("");
 
