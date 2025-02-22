@@ -53,18 +53,24 @@ void enqueue(char* queue[], char* process) {
 
 /**
  *  @brief remove an element from the queue.
+ * 
+ *  @param queue the queue to operate on
  */
-void dequeue() { 
+char* dequeue(char* queue[]) { 
     if (isEmpty()) { 
         puts("the queue is empty.");
         exit(-1);
     }
+
+    char* process = queue[front];
 
     if (front == rear) { 
         front = rear = -1;
     } else { 
         front = (front + 1) % size;
     }
+
+    return process;
 }
 
 /**
@@ -81,7 +87,7 @@ void display(char* queue[]) {
     printf("%s\n", "Queue Elements:");
     int i = front;
     while (i != rear) { 
-        printf("%s\n", queue[i]);
+        printf("%s ", queue[i]);
         i = (i + 1) % size;
     }
     printf("%s\n", queue[rear]);
@@ -162,7 +168,11 @@ void run_rr(int argc, char *argv[]) {
     // Point back to the beginning of the file
     file_rewind(fp);
 
-    // TODO: Initialize the processes
+    puts("\nRunning RR...");
+    puts("Time | Running | Ready Queue");
+    puts("-----------------------------");
+
+    // create the processes
     Process* processes = (Process*)malloc(numbOfProcesses * sizeof(Process));
     if (processes == NULL) { 
         fprintf(stderr, "Memory allocation failed.");
@@ -170,8 +180,7 @@ void run_rr(int argc, char *argv[]) {
         exit(-1);
     }
 
-    // initialize the process
-    // read the file line-by-line
+    // initialize the processes
     int i = 0;
     char line[256];
     while (fgets(line, sizeof(line), fp)) {
@@ -182,20 +191,58 @@ void run_rr(int argc, char *argv[]) {
         i++;
     }
 
-    puts("\nRunning RR...");
-    puts("Time | Running | Ready Queue");
-    puts("-----------------------------");
-
-    // Initialize the circular queue.
+    // initialize the queue.
     char* queue[numbOfProcesses];
-    size = numbOfProcesses;
 
-    puts("");
+    // insert the first process into the queue
+    for (int i = 0; i < numbOfProcesses; i++) { 
+        // check which is the first one
+        if (processes[i].arrival_time == 0) {
+            enqueue(queue, processes[i].pid);
+        }
+    }
 
-    // The queue has been completed (I believe it's completed)
-    // Knowing this information, try implementing the login for Round Robin
-    // TODO: Implement Round Robin Scheduler
+    char* copy = NULL; // a copy of the element we remove for running
+    int timer = 0; //  we always start from 0 ... 
+    while (!isEmpty()) { 
+        printf("%d-", timer);
+        timer = timer + quantum;
+        printf("%d", timer);
+        copy = dequeue(queue);
+        printf(" |%s  |", copy);
 
+        // if a process's PID matches the copy of the element we removed,
+        // then reduce that process's runtime by the amount specified in the "new" timer.
+        for (int i = 0; i < numbOfProcesses; i++) { 
+            if (strcmp(copy, processes[i].pid) == 0) { 
+                processes[i].run_time = processes[i].run_time - timer; //  update the runtime 
+            }
+
+            // if the runtime of that process is greater than 0
+            // we know it still needs to run, so we add back onto the queue.
+            if (processes[i].run_time > 0) { 
+                enqueue(queue, processes[i].pid);
+            }
+        }
+
+
+        // check if any other process arrived
+        for (int i = 0; i < numbOfProcesses; i++) { 
+
+            // NOTE TO SELF - THIS IS WHERE I LAST LEFT OFF.
+            // TODO: if the process is already in the queue, then simply "continue"
+
+
+
+
+            if (processes[i].arrival_time <= timer) { 
+                enqueue(queue, processes[i].pid);
+            }
+        }
+
+        // diplay the current queue
+        display(queue);
+    }
     puts("");
 
     fclose(fp);
