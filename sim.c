@@ -9,13 +9,13 @@
 
 #include "utils.h"
 
-int size = 0; 
+int size = 0; // used to keep track of the number of elements in the queue
 int rear = -1, front = -1;
 
 /**
  *  @brief check if the queue is full.
  */
-int isFull() { 
+int isFull(int size) { 
     // if the next position is the front, the queue is full
     return (rear + 1) % size == front;
 }
@@ -34,10 +34,10 @@ int isEmpty() {
  *  @param queue the queue to operate on
  *  @param process the process to insert into the queue
  */
-void enqueue(char* queue[], char* process) {
+void enqueue(char* queue[], char* process, int size) {
 
     // check if the queue is full before inserting
-    if (isFull()) { 
+    if (isFull(size)) { 
         puts("the queue is full.");
         return;
     }
@@ -56,7 +56,7 @@ void enqueue(char* queue[], char* process) {
  * 
  *  @param queue the queue to operate on
  */
-char* dequeue(char* queue[]) { 
+char* dequeue(char* queue[], int size) { 
     if (isEmpty()) { 
         puts("the queue is empty.");
         exit(-1);
@@ -69,7 +69,7 @@ char* dequeue(char* queue[]) {
     } else { 
         front = (front + 1) % size;
     }
-
+    
     return process;
 }
 
@@ -79,18 +79,26 @@ char* dequeue(char* queue[]) {
  *  @param queue the queue to operate on
  * 
  */
-void display(char* queue[]) { 
+void display(char* queue[], int max_size) { 
     if (isEmpty()) { 
-        puts("the queue is empty.");
+        puts("-");
         return;
     }
-    printf("%s\n", "Queue Elements:");
     int i = front;
     while (i != rear) { 
         printf("%s ", queue[i]);
-        i = (i + 1) % size;
+        i = (i + 1) % max_size;
     }
     printf("%s\n", queue[rear]);
+}
+
+int isInQueue(char* process, char* queue[], int max_size) { 
+    for (int i = 0; i < max_size; i++) { 
+        if (strcmp(queue[i], process) == 0) { 
+            return 1;
+        }
+    }
+    return 0;
 }
 
 /**
@@ -122,42 +130,27 @@ int count(FILE* file_pointer) {
 }
 
 void run_rr(int argc, char *argv[]) {
-
-    // error-handling: scheduling quantum 
-    if (argc < 4) {     
-        usage("Scheduling quantum required.");
-    }
-
-    if (argc > 4) { 
-        usage("Exceeded the number of required arguments.");
-    }
-
-    const int BASE = 10;
-    int quantum;
-    char *endptr;
     
+    const int BASE = 10;
+    char *endptr;
+    int quantum;
+    
+    // error-handling: scheduling quantum 
+    if (argc < 4) { usage("Scheduling quantum required."); }
+    if (argc > 4) { usage("Exceeded the number of required arguments."); }
+
     quantum = strtol(argv[3], &endptr, BASE);
 
-    if (endptr == argv[3]) { 
-        usage("Numerical value not found.");
-    }
-
-    if (quantum < 1 || quantum > 5) { 
-        usage("Quantum must fall within the valid range of 1-5ms.");
-    }
+    if (endptr == argv[3]) { usage("Numerical value not found."); }
+    if (quantum < 1 || quantum > 5) { usage("Quantum must fall within the valid range of 1-5ms."); }
 
     // error-handling: verifying the input file 
     FILE *fp = fopen(argv[2], "r");
+    if (fp == NULL) { usage("Failed to open file."); }
 
-    if (fp == NULL) { 
-        usage("Failed to open file.");
-    }
-
-    // TODO: Implement and Initialize the Ready Queue
     
     // Determine the number of processes.
-    int numbOfProcesses = count(fp); // NOTE TO SELF: this is working so far.
-
+    int numbOfProcesses = count(fp);
 
     // Validate the number of processes
     if (numbOfProcesses < 2 || numbOfProcesses > 5) { 
@@ -168,11 +161,7 @@ void run_rr(int argc, char *argv[]) {
     // Point back to the beginning of the file
     file_rewind(fp);
 
-    puts("\nRunning RR...");
-    puts("Time | Running | Ready Queue");
-    puts("-----------------------------");
-
-    // create the processes
+    // Allocate space for storing processes
     Process* processes = (Process*)malloc(numbOfProcesses * sizeof(Process));
     if (processes == NULL) { 
         fprintf(stderr, "Memory allocation failed.");
@@ -180,7 +169,7 @@ void run_rr(int argc, char *argv[]) {
         exit(-1);
     }
 
-    // initialize the processes
+    // Initialize the processes
     int i = 0;
     char line[256];
     while (fgets(line, sizeof(line), fp)) {
@@ -191,68 +180,151 @@ void run_rr(int argc, char *argv[]) {
         i++;
     }
 
-    // initialize the queue.
-    char* queue[numbOfProcesses];
+    // Point back to the beginning of the file
+    file_rewind(fp);
 
-    // insert the first process into the queue
+    // Intialize the queue 
+    char* queue[numbOfProcesses + 1];
+
+    // insert the process that arrives first.
     for (int i = 0; i < numbOfProcesses; i++) { 
         // check which is the first one
         if (processes[i].arrival_time == 0) {
-            enqueue(queue, processes[i].pid);
+            enqueue(queue, processes[i].pid, numbOfProcesses);
         }
     }
 
-    char* copy = NULL; // a copy of the element we remove for running
-    int timer = 0; //  we always start from 0 ... 
+    puts("\nRunning RR...");
+    puts("Time | Running  | Ready Queue");
+    puts("-----------------------------");
+
+    int timer = 0;
+    char* running_process = NULL;
     while (!isEmpty()) { 
-        printf("%d-", timer);
-        timer = timer + quantum;
-        printf("%d", timer);
-        copy = dequeue(queue);
-        printf(" |%s  |", copy);
 
-        // if a process's PID matches the copy of the element we removed,
-        // then reduce that process's runtime by the amount specified in the "new" timer.
+        printf("%d-%d  |", timer, timer + quantum);
+        running_process = dequeue(queue, numbOfProcesses);
+        printf("%s        |", running_process);
+        timer += quantum;
+
+        // reduce the runtime of the running process
         for (int i = 0; i < numbOfProcesses; i++) { 
-            if (strcmp(copy, processes[i].pid) == 0) { 
-                processes[i].run_time = processes[i].run_time - timer; //  update the runtime 
-            }
-
-            // if the runtime of that process is greater than 0
-            // we know it still needs to run, so we add back onto the queue.
-            if (processes[i].run_time > 0) { 
-                enqueue(queue, processes[i].pid);
+            if (strcmp(processes[i].pid, running_process) == 0) { 
+                processes[i].run_time -= quantum;
+                break;
             }
         }
 
-
-        // check if any other process arrived
         for (int i = 0; i < numbOfProcesses; i++) { 
-
-            // NOTE TO SELF - THIS IS WHERE I LAST LEFT OFF.
-            // TODO: if the process is already in the queue, then simply "continue"
-
-
-
-
-            if (processes[i].arrival_time <= timer) { 
-                enqueue(queue, processes[i].pid);
+            if (strcmp(processes[i].pid, running_process) != 0 && processes[i].arrival_time <= timer && processes[i].run_time > 0) {
+                if (!isInQueue(processes[i].pid, queue, numbOfProcesses)) { 
+                    enqueue(queue, processes[i].pid, numbOfProcesses);
+                }
             }
         }
 
-        // diplay the current queue
-        display(queue);
+        //diplay the current queue
+        display(queue, numbOfProcesses);
     }
+
     puts("");
 
     fclose(fp);
+    free(processes);
     puts("\nRR Execution Completed.");
     puts("Average Response Time:");
     puts("Average Turnaround Time:");
     puts("Total Context Switches:");
 
-
     puts("");
 }
 
-void run_fcfs(int argc, char *argv[]) { printf("%d\n", argc); }
+void run_fcfs(int argc, char *argv[]) { 
+    
+    // error-handling: scheduling quantum 
+    if (argc > 3) { usage("Exceeded the number of required arguments."); }
+
+    // error-handling: verifying the input file 
+    FILE *fp = fopen(argv[2], "r");
+    if (fp == NULL) { usage("Failed to open file."); }
+
+    
+    // Determine the number of processes.
+    int numbOfProcesses = count(fp);
+
+    // Validate the number of processes
+    if (numbOfProcesses < 2 || numbOfProcesses > 5) { 
+        fprintf(stderr, "The number of processes must fall within the valid range of 2-5.\n");
+        exit(-1);
+    }
+
+    // Point back to the beginning of the file
+    file_rewind(fp);
+
+    // Allocate space for storing processes
+    Process* processes = (Process*)malloc(numbOfProcesses * sizeof(Process));
+    if (processes == NULL) { 
+        fprintf(stderr, "Memory allocation failed.");
+        fclose(fp);
+        exit(-1);
+    }
+
+    // Initialize the processes
+    int i = 0;
+    char line[256];
+    while (fgets(line, sizeof(line), fp)) {
+        sscanf(line, "%s %d %d",
+                processes[i].pid,
+                &processes[i].arrival_time,
+                &processes[i].run_time);
+        i++;
+    }
+
+    // Point back to the beginning of the file
+    file_rewind(fp);
+
+    // Intialize the queue 
+    char* queue[numbOfProcesses + 1];
+
+    // insert the processes into the queue
+    for (int i = 0; i < numbOfProcesses; i++) { 
+        enqueue(queue, processes[i].pid, numbOfProcesses);
+    }
+
+    // sort the queue based on arrival time
+    for (int i = 0; i < numbOfProcesses - 1; i++) { 
+        for (int j = 0; j < numbOfProcesses - i - 1; j++) { 
+            if (processes[i].arrival_time > processes[j + 1].arrival_time) { 
+                Process temp = processes[j];
+                processes[j] = processes[j + 1];
+                processes[j + 1] = temp;
+            }
+        }
+    }
+
+    int timer = 0;
+    int complete = 0;
+    int contextSwitches = 0;
+    char* running_process = NULL;
+    char* current_process = NULL;
+    puts("\nRunning RR...");
+    puts("Time | Running  | Ready Queue");
+    puts("-----------------------------");
+
+    while (!isEmpty()) { 
+        
+
+
+
+    puts("");
+
+    fclose(fp);
+    free(processes);
+    puts("\nRR Execution Completed.");
+    puts("Average Response Time:");
+    puts("Average Turnaround Time:");
+    puts("Total Context Switches:");
+
+    puts("");
+
+}
